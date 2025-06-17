@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OneNov Secure Upload</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+    <img src="logo.png" alt="OneNov Logo" class="logo">
+    <div id="authBox" class="box">
+        <h2>🔐 SECURE LOGIN</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">ACCESS UPLOAD</button>
+        <p id="loginError"></p>
+    </div>
+    <div id="uploadBox" class="box hidden">
+        <h2>🚀 UPLOAD FILE</h2>
+        <input type="file" id="fileInput">
+        <button onclick="uploadFile()">UPLOAD</button>
+        <p id="fileStatus"></p>
+    </div>
+</div>
+<script>
+    const API_BASE = window.location.origin;
+
+    async function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('password', password);
+
+        const res = await fetch(`${API_BASE}/api/upload`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await res.json();
+        if (res.status === 401) {
+            document.getElementById('loginError').innerText = '❌ Unauthorized!';
+        } else {
+            document.getElementById('authBox').classList.add('hidden');
+            document.getElementById('uploadBox').classList.remove('hidden');
+        }
+    }
+
+    async function uploadFile() {
+        const fileInput = document.getElementById('fileInput');
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        if (!fileInput.files.length) return alert("Choose file first.");
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('username', username);
+        formData.append('password', password);
+
+        const res = await fetch(`${API_BASE}/api/upload`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await res.json();
+        if (result.success) {
+            document.getElementById('fileStatus').innerHTML = `
+                ✅ Uploaded! <a href="${API_BASE}${result.downloadUrl}" target="_blank">Download</a>
+            `;
+        } else {
+            document.getElementById('fileStatus').innerText = `❌ ${result.error}`;
+        }
+    }
+</script>
+</body>
+</html>
